@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Password Manager</h1>
+        <div id="menu">
+            <button onclick="showForm('register')">Register</button>
+            <button onclick="showForm('login')">Login</button>
+            <button onclick="showForm('change')">Change Password</button>
+        </div>
+        <div id="forms">
+            <form id="registerForm" style="display:none;">
+                <h2>Register</h2>
+                <input type="text" id="regUsername" placeholder="Username" required>
+                <input type="password" id="regPassword" placeholder="Password" required>
+                <button type="button" onclick="registerUser()">Register</button>
+            </form>
+            <form id="loginForm" style="display:none;">
+                <h2>Login</h2>
+                <input type="text" id="loginUsername" placeholder="Username" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button type="button" onclick="loginUser()">Login</button>
+            </form>
+            <form id="changeForm" style="display:none;">
+                <h2>Change Password</h2>
+                <input type="text" id="changeUsername" placeholder="Username" required>
+                <input type="password" id="oldPassword" placeholder="Current Password" required>
+                <input type="password" id="newPassword" placeholder="New Password" required>
+                <button type="button" onclick="changePassword()">Change Password</button>
+            </form>
+        </div>
+        <div id="message"></div>
+    </div>
+    <script>
+	class PasswordManager {
+    constructor() {
+        this.users = JSON.parse(localStorage.getItem('users')) || {};
+    }
+
+    hashPassword(password) {
+        // This is a simple hash function for demonstration purposes.
+        // In a real application, use a secure hashing algorithm like bcrypt.
+        return btoa(password);
+    }
+
+    registerUser(username, password) {
+        if (this.users[username]) {
+            return false;
+        }
+        const hashedPassword = this.hashPassword(password);
+        this.users[username] = hashedPassword;
+        this.saveUsers();
+        return true;
+    }
+
+    loginUser(username, password) {
+        const hashedPassword = this.hashPassword(password);
+        return this.users[username] === hashedPassword;
+    }
+
+    changePassword(username, oldPassword, newPassword) {
+        if (this.loginUser(username, oldPassword)) {
+            const newHashedPassword = this.hashPassword(newPassword);
+            this.users[username] = newHashedPassword;
+            this.saveUsers();
+            return true;
+        }
+        return false;
+    }
+
+    saveUsers() {
+        localStorage.setItem('users', JSON.stringify(this.users));
+    }
+}
+
+const pm = new PasswordManager();
+
+function showForm(formId) {
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('changeForm').style.display = 'none';
+    document.getElementById(`${formId}Form`).style.display = 'flex';
+}
+
+function registerUser() {
+    const username = document.getElementById('regUsername').value;
+    const password = document.getElementById('regPassword').value;
+    if (pm.registerUser(username, password)) {
+        showMessage(`User '${username}' registered successfully!`);
+    } else {
+        showMessage(`Error: Username '${username}' already exists.`);
+    }
+}
+
+function loginUser() {
+    const username = document.getElementById('loginUsername').value;
+    const password = document.getElementById('loginPassword').value;
+    if (pm.loginUser(username, password)) {
+        showMessage(`Welcome, ${username}!`);
+    } else {
+        showMessage('Invalid username or password.');
+    }
+}
+
+function changePassword() {
+    const username = document.getElementById('changeUsername').value;
+    const oldPassword = document.getElementById('oldPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    if (pm.changePassword(username, oldPassword, newPassword)) {
+        showMessage('Password changed successfully!');
+    } else {
+        showMessage('Failed to change password. Please check your current credentials.');
+    }
+}
+
+function showMessage(message) {
+    document.getElementById('message').textContent = message;
+}
+
+    </script>
+</body>
+</html>
